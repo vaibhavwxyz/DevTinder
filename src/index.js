@@ -29,6 +29,40 @@ app.post('/signup', async (req, res) => {
 
 })
 
+app.get('/user', async (req, res) => {
+  // console.log(getUserByName)
+
+  try {
+    const result = await User.find({ firstName: req.body.firstName });
+    if (result.length === 0) res.send("there is no user");
+    res.send(result)
+  } catch (err) {
+    res.status(400).send({
+      message: "Something went wrong",
+      error: err.message
+    })
+  }
+})
+
+app.delete('/user/:id', async (req, res) => {
+  try {
+    const result = await User.findByIdAndDelete(req.params.id);
+    if (!result) {
+      return res.status(404).send({
+        message: "User not found"
+      });
+    }
+    res.status(200).send({
+      message: "User deleted successfully"
+    });
+  } catch (err) {
+    res.status(400).send({
+      message: "Error deleting the user",
+      error: err.message
+    });
+  }
+});
+
 connectDB()
   .then(() => {
     console.log('Database connection established!');
