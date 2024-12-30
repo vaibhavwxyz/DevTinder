@@ -1,0 +1,23 @@
+{
+  "name": "devtinder",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vaibhavwxyz/DevTinder.git"
+  },
+  "author": "vaibhav",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vaibhavwxyz/DevTinder/issues"
+  },
+  "homepage": "https://github.com/vaibhavwxyz/DevTinder#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongoose": "^8.9.2"
+  }
+}
