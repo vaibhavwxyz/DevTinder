@@ -1,5 +1,7 @@
 const express = require('express')
 const connectDB = require('./config/database')
+const bcrypt = require('bcrypt');
+const validator = require('validator');
 const User = require('./model/user')
 
 const app = express()
@@ -8,12 +10,6 @@ const PORT = 3000
 app.use(express.json())
 
 app.post('/signup', async (req, res) => {
-  // const user = new User({
-  //   firstName: 'Pawan',
-  //   lastName: 'Bangar',
-  //   emailId: 'pawan@gmail.com',
-  //   password: '12345'
-  // })
 
   const user = new User(req.body)
 
@@ -29,8 +25,28 @@ app.post('/signup', async (req, res) => {
 
 })
 
+app.patch('/user/:id', async (req, res) => {
+  const updates = Object.keys(req.body)
+
+  const allowedUpdates = ['firstName', 'lastName', 'password', 'age', 'skills']
+  const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
+
+  if (!isValidOperation) {
+    return res.status(400).send({ error: 'Invalid updates!' })
+  }
+
+  try {
+    const user = await User.findById(req.params.id)
+    updates.forEach((update) => user[update] = req.body[update])
+
+    await user.save()
+    res.status(200).send({ message: 'user updated succefully', user })
+  } catch (err) {
+    res.status(400).send({ message: 'something went wrong', error: err.message })
+  }
+})
+
 app.get('/user', async (req, res) => {
-  // console.log(getUserByName)
 
   try {
     const result = await User.find({ firstName: req.body.firstName });
