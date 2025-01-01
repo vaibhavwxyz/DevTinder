@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken')
 const connectDB = require('./config/database')
 const User = require('./model/user');
 const { validateSignUpData } = require('./utils/validateSignUpData');
+const { userAuth } = require('./middleware/auth');
 
 const app = express()
 const PORT = 3000
@@ -12,7 +13,7 @@ const PORT = 3000
 app.use(express.json())
 app.use(cookieParser())
 
-app.post('/signup', async (req, res) => {
+app.post('/register', async (req, res) => {
 
   try {
     validateSignUpData(req);
@@ -54,7 +55,7 @@ app.get('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (isMatch) {
-      var token = await jwt.sign({ id: user._id }, 'thisisrandomsecretkey')
+      var token = jwt.sign({ id: user._id }, 'thisisrandomsecretkey')
       res.cookie('token', token)
       res.status(200).send("Logged in Successfully!")
     } else {
@@ -67,34 +68,11 @@ app.get('/login', async (req, res) => {
       error: err.message
     })
   }
-
 })
 
-
-app.patch('/user/:id', async (req, res) => {
-  const updates = Object.keys(req.body)
-
-  const allowedUpdates = ['firstName', 'lastName', 'password', 'age', 'skills']
-  const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
-
-  if (!isValidOperation) return res.status(400).send({ error: 'Invalid updates!' })
-
+app.get('/whoiam', userAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
-    updates.forEach((update) => user[update] = req.body[update])
-
-    await user.save()
-    res.status(200).send({ message: 'user updated succefully', user })
-  } catch (err) {
-    res.status(400).send({ message: 'something went wrong', error: err.message })
-  }
-})
-
-app.get('/getusers', async (req, res) => {
-  console.log("cookies====>>>", req.cookies)
-
-  try {
-    const result = await User.find({});
+    const result = req.user;
     if (result.length === 0) res.send("there is no user");
     res.send(result)
   } catch (err) {
@@ -105,24 +83,6 @@ app.get('/getusers', async (req, res) => {
   }
 })
 
-app.delete('/user/:id', async (req, res) => {
-  try {
-    const result = await User.findByIdAndDelete(req.params.id);
-    if (!result) {
-      return res.status(404).send({
-        message: "User not found"
-      });
-    }
-    res.status(200).send({
-      message: "User deleted successfully"
-    });
-  } catch (err) {
-    res.status(400).send({
-      message: "Error deleting the user",
-      error: err.message
-    });
-  }
-});
 
 connectDB()
   .then(() => {
