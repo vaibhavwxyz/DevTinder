@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
 const express = require('express')
+const cookieParser = require('cookie-parser')
+const jwt = require('jsonwebtoken')
 const connectDB = require('./config/database')
 const User = require('./model/user');
 const { validateSignUpData } = require('./utils/validateSignUpData');
@@ -8,6 +10,7 @@ const app = express()
 const PORT = 3000
 
 app.use(express.json())
+app.use(cookieParser())
 
 app.post('/signup', async (req, res) => {
 
@@ -49,7 +52,14 @@ app.get('/login', async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    isMatch ? res.status(200).send("Logged in Successfully!") : res.status(404).send({ message: "Invalid Credentials" });
+
+    if (isMatch) {
+      var token = await jwt.sign({ id: user._id }, 'thisisrandomsecretkey')
+      res.cookie('token', token)
+      res.status(200).send("Logged in Successfully!")
+    } else {
+      res.status(404).send({ message: "Invalid Credentials" });
+    }
 
   } catch (err) {
     res.status(400).send({
@@ -81,6 +91,7 @@ app.patch('/user/:id', async (req, res) => {
 })
 
 app.get('/getusers', async (req, res) => {
+  console.log("cookies====>>>", req.cookies)
 
   try {
     const result = await User.find({});
